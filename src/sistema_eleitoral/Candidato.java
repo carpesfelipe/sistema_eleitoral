@@ -90,22 +90,19 @@ public class Candidato {
         }
     }
    
-    public boolean ehEleito(Candidato candidato){
-        if(candidato.cd_sit_tot_turno=="2" || candidato.cd_sit_tot_turno=="3"){
-            return true;
-        }
-        return false;
-    }
     public boolean ehVotoLegenda(){
         if(nm_tipo_destinacao_votos=="Válido (legenda)"){
             return true;
         }
         return false;
     }
+    public void incrementaVoto(int qtdVotos){
+        this.votos_nominais++;
+    }
     @Override public String toString(){
         String result="";
 
-        result+=this.nm_urna_candidato+", "+this.sg_partido+this.votos_nominais+" votos \n";
+        result+=this.nm_urna_candidato+", "+this.sg_partido+" "+this.votos_nominais+" votos \n";
 
         return result;
     }
