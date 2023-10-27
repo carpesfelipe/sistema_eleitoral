@@ -26,6 +26,7 @@ public class Partido {
     public int getQtVotos() {
         return qtVotos;
     }
+    
     public void incrementaVoto(int qtVotos) {
         this.qtVotos += qtVotos;
     }

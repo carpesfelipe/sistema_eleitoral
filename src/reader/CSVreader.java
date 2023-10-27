@@ -12,7 +12,7 @@ import sistema_eleitoral.*;
 
 public class CSVreader {
     private Map<String, Candidato> mapaCandidatos = new HashMap<String, Candidato>();
-    // private Map<String, Partido> mapaPartidos = new HashMap<String, Partido>();
+    private Map<String, Partido> mapaPartidos = new HashMap<String, Partido>();
 
     public Map<String, Candidato> processaArquivoCandatos(String fileName) throws FileNotFoundException, IOException {
         final int CD_CARGOcand = 13;
@@ -29,44 +29,32 @@ public class CSVreader {
         try (FileInputStream fin = new FileInputStream(fileName);
                 Scanner s = new Scanner(fin, "ISO-8859-1")) {
             int coluna = 0;
-            int linha = 0;
+            s.nextLine();
             while (s.hasNextLine()) {
                 coluna = 0;
-                if (linha == 0) {
-                    linha++;
-                    s.nextLine();
-                    continue;
-                }
                 String line = s.nextLine();
                 Candidato candidato = new Candidato();
                 try (Scanner lineScanner = new Scanner(line)) {
                     lineScanner.useDelimiter(";");
                     while (lineScanner.hasNext()) {
                         String token = lineScanner.next();
+                        token = token.substring(1, token.length() - 1);
                         if (coluna == CD_CARGOcand) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setCd_cargo(token);
                         } else if (coluna == CD_SITUACAO_CANDIDATO_TOT) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setCd_situacao_candidato_tot(token);
                         } else if (coluna == NR_CANDIDATO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setNr_candidato(token);
                         } else if (coluna == NM_URNA_CANDIDATO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setNm_urna_candidato(token);
                         } else if (coluna == NR_PARTIDO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setNr_partido(token);
                         } else if (coluna == SG_PARTIDO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setSg_partido(token);
                         } else if (coluna == NR_FEDERACAO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setNr_federacao(token);
                         } else if (coluna == DT_NASCIMENTO) {
 
-                            token = token.substring(1, token.length() - 1);
                             try {
                                 LocalDate ld = LocalDate.parse(token, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                                 candidato.setDt_nascimento(ld);
@@ -74,13 +62,10 @@ public class CSVreader {
                                 continue;
                             }
                         } else if (coluna == SIT_TOT_TURNO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setCd_sit_tot_turno(token);
                         } else if (coluna == CD_GENERO) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setCd_genero(token);
                         } else if (coluna == NM_TIPO_DESTINACAO_VOTOS) {
-                            token = token.substring(1, token.length() - 1);
                             candidato.setNm_tipo_destinacao_votos(token);
                         }
                         coluna++;
@@ -89,7 +74,6 @@ public class CSVreader {
                     e.printStackTrace();
                 }
                 mapaCandidatos.put(candidato.getNr_candidato(), candidato);
-                linha++;
             }
             return mapaCandidatos;
         }
@@ -103,10 +87,11 @@ public class CSVreader {
         try (FileInputStream fin = new FileInputStream(fileName);
                 Scanner s = new Scanner(fin, "ISO-8859-1")) {
             int coluna = 0;
-
+            s.nextLine();
             while (s.hasNextLine()) {
                 coluna = 0;
                 String line = s.nextLine();
+                
                 try (Scanner lineScanner = new Scanner(line)) {
                     lineScanner.useDelimiter(";");
                     String nr_votavel = "";
@@ -114,13 +99,18 @@ public class CSVreader {
                     while (lineScanner.hasNext()) {
                         int qtVotos;
                         if (coluna == CD_CARGO || coluna == NR_VOTAVEL || coluna == QTVOTOS) {
+                            
                             String token = lineScanner.next();
+                            token = token.substring(1, token.length() - 1);
                             if (coluna == QTVOTOS) {
                                 qtVotos = Integer.parseInt(token);
                             } else if (coluna == CD_CARGO) {
                                 cd_cargo = token;
                             } else if (coluna == NR_VOTAVEL) {
-                                nr_votavel = token;
+                                Candidato c=mapaCandidatos.get(token);                           
+                                if(c.ehVotoLegenda()){
+                                    Partido p=mapaPartidos.get(c.getNr_partido());
+                                }
                             }
                         } else {
                             lineScanner.next();

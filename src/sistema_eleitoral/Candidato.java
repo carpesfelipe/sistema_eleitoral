@@ -17,6 +17,7 @@ public class Candidato {
     private LocalDate dt_nascimento;
     private String cd_genero;
     private String nm_tipo_destinacao_votos;
+    private int votos_nominais=0;
     public void setCd_cargo(String cd_cargo) {
         this.cd_cargo = cd_cargo;
     }
@@ -82,6 +83,31 @@ public class Candidato {
     }
     public String getNm_tipo_destinacao_votos() {
         return nm_tipo_destinacao_votos;
+    }
+    public void computaVoto(String nr_candidato){
+        if(nr_candidato==this.nr_candidato){
+            this.votos_nominais++;
+        }
+    }
+   
+    public boolean ehEleito(Candidato candidato){
+        if(candidato.cd_sit_tot_turno=="2" || candidato.cd_sit_tot_turno=="3"){
+            return true;
+        }
+        return false;
+    }
+    public boolean ehVotoLegenda(){
+        if(nm_tipo_destinacao_votos=="Válido (legenda)"){
+            return true;
+        }
+        return false;
+    }
+    @Override public String toString(){
+        String result="";
+
+        result+=this.nm_urna_candidato+", "+this.sg_partido+this.votos_nominais+" votos \n";
+
+        return result;
     }
 }
 
