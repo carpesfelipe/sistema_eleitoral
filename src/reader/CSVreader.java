@@ -14,7 +14,7 @@ public class CSVreader {
     private Map<String, Candidato> mapaCandidatos = new HashMap<String, Candidato>();
     private Map<String, Partido> mapaPartidos = new HashMap<String, Partido>();
 
-    public Map<String, Candidato> processaArquivoCandatos(String fileName) throws FileNotFoundException, IOException {
+    public Map<String, Candidato> processaArquivoCandatos(String arquivo_candidato) throws FileNotFoundException, IOException {
         final int CD_CARGOcand = 13;
         final int CD_SITUACAO_CANDIDATO_TOT = 68;
         final int NR_CANDIDATO = 16;
@@ -26,10 +26,10 @@ public class CSVreader {
         final int SIT_TOT_TURNO = 56;
         final int CD_GENERO = 45;
         final int NM_TIPO_DESTINACAO_VOTOS = 67;
-        try (FileInputStream fin = new FileInputStream(fileName);
+        try (FileInputStream fin = new FileInputStream(arquivo_candidato);
                 Scanner s = new Scanner(fin, "ISO-8859-1")) {
             int coluna = 0;
-            //s.nextLine();
+            s.nextLine();
             while (s.hasNextLine()) {
                 coluna = 0;
                 String line = s.nextLine();
@@ -79,11 +79,18 @@ public class CSVreader {
         }
     }
 
-    public Map<String, Partido> processaArquivoPartidos(String fileName) {
+    public Map<String, Partido> processaArquivoPartidos(String fileName,String tipo_eleicao) {
+        String tipo="";
+        if(tipo_eleicao.equals("--federal")){
+            tipo="6";
+        }else{
+            tipo="7";
+        }
         final int CD_CARGO = 17;
         final int NR_VOTAVEL = 19;
-        final int QTVOTOS = 21;
+        final int QT_VOTOS = 21;
         // lendo arquivo de partidos
+       
         try (FileInputStream fin = new FileInputStream(fileName);
                 Scanner s = new Scanner(fin, "ISO-8859-1")) {
             int coluna = 0;
@@ -96,15 +103,16 @@ public class CSVreader {
                     lineScanner.useDelimiter(";");
                     String nr_votavel = "";
                     String cd_cargo = "";
-                    int qtVotos=0;
+                    int qt_votos=0;
                     while (lineScanner.hasNext()) {
-                        if (coluna == CD_CARGO || coluna == NR_VOTAVEL || coluna == QTVOTOS) {
+                        if (coluna == CD_CARGO || coluna == NR_VOTAVEL || coluna == QT_VOTOS) {
                             String token = lineScanner.next();
                             token = token.substring(1, token.length() - 1);
-                            if (coluna == QTVOTOS) {
-                                qtVotos+= Integer.parseInt(token);
-                            } else if (coluna == CD_CARGO) {
+
+                            if (coluna == CD_CARGO) {
                                 cd_cargo = token;
+                            } else if (coluna == QT_VOTOS) {
+                                qt_votos=Integer.parseInt(token);
                             } else if (coluna == NR_VOTAVEL) {
                                 nr_votavel = token;                          
                             }
@@ -113,11 +121,14 @@ public class CSVreader {
                         }
                         coluna++;
                     }
-                    mapaCandidatos.get(nr_votavel).incrementaVoto(qtVotos);;
+                    if(mapaCandidatos.get(nr_votavel)!=null){
+                        mapaCandidatos.get(nr_votavel).incrementaVoto(qt_votos);;
+                    }
                     
                 }
             }
           
+            return mapaPartidos;
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -96,8 +96,12 @@ public class Candidato {
         }
         return false;
     }
-    public void incrementaVoto(int qtdVotos){
-        this.votos_nominais++;
+    public void incrementaVoto(int qtd_votos){
+        this.votos_nominais+=qtd_votos;
+    }
+    public int calculaIdade(LocalDate data_atual){
+        int idade=this.dt_nascimento.getYear()-data_atual.getYear();
+        return idade;
     }
     @Override public String toString(){
         String result="";
@@ -105,6 +109,9 @@ public class Candidato {
         result+=this.nm_urna_candidato+", "+this.sg_partido+" "+this.votos_nominais+" votos \n";
 
         return result;
+    }
+    public int getQt_votos() {
+        return this.votos_nominais;
     }
 }
 
