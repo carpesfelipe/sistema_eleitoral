@@ -22,7 +22,7 @@ public class Candidato {
         this.cd_cargo = cd_cargo;
     }
     public String getCd_cargo() {
-        return cd_cargo;
+        return this.cd_cargo;
     }
     public void setCd_situacao_candidato_tot(String cd_situacao_candidato_tot) {
         this.cd_situacao_candidato_tot = cd_situacao_candidato_tot;
