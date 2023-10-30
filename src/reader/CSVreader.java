@@ -121,10 +121,31 @@ public class CSVreader {
                         }
                         coluna++;
                     }
-                    if(mapaCandidatos.get(nr_votavel)!=null){
-                        mapaCandidatos.get(nr_votavel).incrementaVoto(qt_votos);;
+                    //incrementar os votos nominais no partido
+                    if(cd_cargo.equals(tipo)){
+                        if(mapaCandidatos.get(nr_votavel)!=null){
+                            Candidato candidato = mapaCandidatos.get(nr_votavel);
+                            Partido partido= new Partido(candidato.getNr_partido(), cd_cargo);
+                            partido.addCandidato(candidato);
+                            mapaPartidos.put(candidato.getNr_partido(), partido);
+                            // if(mapaCandidatos.get(nr_votavel).getCd_cargo().equals(tipo)){
+                            //     if(mapaPartidos.get(mapaCandidatos.get(nr_votavel).getNr_partido())==null){
+                            //         Partido partido = new Partido(mapaCandidatos.get(nr_votavel).getNr_partido(),mapaCandidatos.get(nr_votavel).getSg_partido());
+                            //         partido.addCandidato(mapaCandidatos.get(nr_votavel));
+                            //         mapaPartidos.put(mapaCandidatos.get(nr_votavel).getNr_partido(), partido);
+                            //     }
+                                
+                            //     String token=mapaCandidatos.get(nr_votavel).getNm_tipo_destinacao_votos();
+                                
+                            //     boolean ehVotoLegenda = mapaCandidatos.get(nr_votavel).getNm_tipo_destinacao_votos().contains("lido");
+                                 mapaCandidatos.get(nr_votavel).incrementaVoto(qt_votos);
+                            //     mapaPartidos.get(mapaCandidatos.get(nr_votavel).getNr_partido()).incrementaVoto(qt_votos,ehVotoLegenda);
+                            // }
+                        }
+                    }else{
+                        continue;
                     }
-                    
+                        
                 }
             }
           
@@ -134,4 +155,5 @@ public class CSVreader {
         }
         return mapaPartidos;
     }
+    
 }

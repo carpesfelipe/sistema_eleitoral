@@ -89,7 +89,16 @@ public class Candidato {
             this.votos_nominais++;
         }
     }
-   
+    public boolean ehDoTipoDeEleicao(String tipo){
+        if(cd_cargo.equals(tipo))return true;
+        return false;
+    }
+    public boolean ehCandidatoEleito(){
+        if(cd_sit_tot_turno.contains("2") || cd_sit_tot_turno.contains("3")){
+            return true;
+        }
+        return false;
+    }
     public boolean ehVotoLegenda(){
         if(nm_tipo_destinacao_votos=="Válido (legenda)"){
             return true;
@@ -100,7 +109,7 @@ public class Candidato {
         this.votos_nominais+=qtd_votos;
     }
     public int calculaIdade(LocalDate data_atual){
-        int idade=this.dt_nascimento.getYear()-data_atual.getYear();
+        int idade=data_atual.getYear()-this.dt_nascimento.getYear();
         return idade;
     }
     @Override public String toString(){
@@ -110,6 +119,7 @@ public class Candidato {
 
         return result;
     }
+    
     public int getQt_votos() {
         return this.votos_nominais;
     }
