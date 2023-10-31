@@ -24,14 +24,13 @@ public class Urna {
             tipo = "7";
         }
         try {
-            Map<String, Candidato> mapaCandidatos = csvReader.processaArquivoCandatos(
-                    "C:\\Users\\felip\\trabalho-poo\\sistema_eleitoral\\src\\reader\\candidatos.csv");
-            Map<String, Partido> mapaPartidos = csvReader.processaArquivoPartidos(
-                    "C:\\Users\\felip\\trabalho-poo\\sistema_eleitoral\\src\\reader\\votacao.csv", args[0]);
+            Map<String, Candidato> mapaCandidatos = csvReader.processaArquivoCandatos(args[1],tipo);
+            Map<String, Partido> mapaPartidos = csvReader.processaArquivoPartidos(args[2], tipo);
+            System.out.println("Número de vagas: " + mapaCandidatos.size());
             for (Candidato c : mapaCandidatos.values()) {
                 if (c.ehDoTipoDeEleicao(tipo)) {
                     if (c.getCd_sit_tot_turno() != null) {
-                        if (c.getCd_sit_tot_turno().contains("2") || c.getCd_sit_tot_turno().contains("3")) {
+                        if (c.ehCandidatoEleito()) {
                             nr_vagas++;
                         }
                     }
@@ -49,7 +48,7 @@ public class Urna {
                 if (c.ehDoTipoDeEleicao(tipo)) {
 
                     if (c.getCd_sit_tot_turno() != null) {
-                        if (c.ehCandidatoEleito()) {
+                       if (c.ehCandidatoEleito()) {
                             System.out.println(i + "- " + c);
                             i++;
                         }
@@ -105,15 +104,17 @@ public class Urna {
             cont=1;
             System.out.println("Votação dos partidos e número de candidatos eleitos:");
             LinkedList<Partido> listaPartidos = new LinkedList<Partido>(mapaPartidos.values());
-            //TODO
-            //listaPartidos.sort((Partido p1, Partido p2) -> p2.getQtVotosTotal() - p1.getQtVotosTotal());
-            // for(Partido p: listaPartidos){
-            //     System.out.println(cont+" - "+p);
-            //     cont++;
-            // }
+            listaPartidos.sort((Partido p1, Partido p2) -> p2.getQtVotosTotal() - p1.getQtVotosTotal());
+            for(Partido p: listaPartidos){
+                System.out.println(cont+" - "+p);
+                cont++;
+            }
             System.out.println("Eleitos, por faixa etária (na data de eleição):");
             RelatorioIdade(listaCandidatos, tipo, ld);
+            System.out.println("Eleitos, por gênero:");
+            RelatorioGenero(listaCandidatos, tipo);
         } catch (Exception e) {
+            System.out.println("Erro ao processar arquivo");
             System.out.println(e.getMessage());
         }
 
@@ -152,6 +153,7 @@ public class Urna {
         float result=((float)qtdMenor30/(float)eleitos);
         result*=100;
         nf.setMaximumFractionDigits(2);
+        nf.setMinimumFractionDigits(2);
         System.out.println("      Idade < 30: "+ qtdMenor30+" ("+ nf.format(result)+"%)");
         result=(float)qtdMenor40/eleitos;
         result*=100;
@@ -166,4 +168,36 @@ public class Urna {
         result*=100;
         System.out.println("60 <= Idade:      "+qtdMaior60+" ("+nf.format(result)+"%)");
     }
+    public static void RelatorioGenero(LinkedList<Candidato> listaCandidatos, String tipo){
+        int qtdMasculino=0;
+        int qtdFeminino=0;
+        int eleitos=0;
+        for(Candidato c: listaCandidatos){
+            if(c.ehDoTipoDeEleicao(tipo)){
+                if(c.getCd_sit_tot_turno()!=null){
+                    if(c.ehCandidatoEleito()){
+                        if(c.getCd_genero().equals("4")){
+                            qtdFeminino++;
+                        }else{
+                            qtdMasculino++;
+                        }
+                        eleitos++;
+                    }
+                }
+            }
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance();
+        float result=((float)qtdMasculino/(float)eleitos);
+        result*=100;
+        
+        nf.setMaximumFractionDigits(2);
+        nf.setMinimumFractionDigits(2);
+        System.out.println("Feminino:  "+qtdFeminino+" ("+nf.format(result)+"%)");
+        result=(float)qtdFeminino/eleitos;
+        result*=100;
+        System.out.println("Masculino: "+qtdMasculino+" ("+nf.format(result)+"%)");
+    }
+    // public void RelatorioVotos(LinkedList<>){
+
+    // }
 }

@@ -25,7 +25,9 @@ public class Partido {
         return new HashMap<String, Candidato>(mapaCandidatos);
     }
     public void addCandidato(Candidato candidato) {
-        mapaCandidatos.put(candidato.getNr_candidato(), candidato);
+        if(!mapaCandidatos.containsKey(candidato.getNr_candidato())){
+            mapaCandidatos.put(candidato.getNr_candidato(), candidato);
+        }
     }
     public Candidato getCandidato(String nrVotavel) throws RuntimeException {
         Candidato candidato = mapaCandidatos.get(nrVotavel);

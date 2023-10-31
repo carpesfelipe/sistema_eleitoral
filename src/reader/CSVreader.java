@@ -14,7 +14,8 @@ public class CSVreader {
     private Map<String, Candidato> mapaCandidatos = new HashMap<String, Candidato>();
     private Map<String, Partido> mapaPartidos = new HashMap<String, Partido>();
 
-    public Map<String, Candidato> processaArquivoCandatos(String arquivo_candidato) throws FileNotFoundException, IOException {
+    public Map<String, Candidato> processaArquivoCandatos(String arquivo_candidato, String tipo_eleicao)
+            throws FileNotFoundException, IOException {
         final int CD_CARGOcand = 13;
         final int CD_SITUACAO_CANDIDATO_TOT = 68;
         final int NR_CANDIDATO = 16;
@@ -40,6 +41,10 @@ public class CSVreader {
                         String token = lineScanner.next();
                         token = token.substring(1, token.length() - 1);
                         if (coluna == CD_CARGOcand) {
+                            if (!token.equals(tipo_eleicao)) {
+                                coluna++;
+                                break;
+                            }
                             candidato.setCd_cargo(token);
                         } else if (coluna == CD_SITUACAO_CANDIDATO_TOT) {
                             candidato.setCd_situacao_candidato_tot(token);
@@ -59,7 +64,7 @@ public class CSVreader {
                                 LocalDate ld = LocalDate.parse(token, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                                 candidato.setDt_nascimento(ld);
                             } catch (Exception e) {
-                                continue;
+                                candidato.setDt_nascimento(null);
                             }
                         } else if (coluna == SIT_TOT_TURNO) {
                             candidato.setCd_sit_tot_turno(token);
@@ -73,24 +78,19 @@ public class CSVreader {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                mapaCandidatos.put(candidato.getNr_candidato(), candidato);
+                if (candidato.ehDeferidoCandidato() || candidato.ehVotoLegenda()) {
+                    mapaCandidatos.put(candidato.getNr_candidato(), candidato);
+                }
             }
             return mapaCandidatos;
         }
     }
 
-    public Map<String, Partido> processaArquivoPartidos(String fileName,String tipo_eleicao) {
-        String tipo="";
-        if(tipo_eleicao.equals("--federal")){
-            tipo="6";
-        }else{
-            tipo="7";
-        }
+    public Map<String, Partido> processaArquivoPartidos(String fileName, String tipo_eleicao) {
         final int CD_CARGO = 17;
         final int NR_VOTAVEL = 19;
         final int QT_VOTOS = 21;
-        // lendo arquivo de partidos
-       
+ 
         try (FileInputStream fin = new FileInputStream(fileName);
                 Scanner s = new Scanner(fin, "ISO-8859-1")) {
             int coluna = 0;
@@ -98,62 +98,61 @@ public class CSVreader {
             while (s.hasNextLine()) {
                 coluna = 0;
                 String line = s.nextLine();
-                
                 try (Scanner lineScanner = new Scanner(line)) {
                     lineScanner.useDelimiter(";");
                     String nr_votavel = "";
                     String cd_cargo = "";
-                    int qt_votos=0;
+                    int qt_votos = 0;
                     while (lineScanner.hasNext()) {
+                        String token = lineScanner.next();
                         if (coluna == CD_CARGO || coluna == NR_VOTAVEL || coluna == QT_VOTOS) {
-                            String token = lineScanner.next();
                             token = token.substring(1, token.length() - 1);
 
                             if (coluna == CD_CARGO) {
                                 cd_cargo = token;
+                                if (!cd_cargo.equals(tipo_eleicao)) {
+                                    coluna++;
+                                    break;
+                                }
                             } else if (coluna == QT_VOTOS) {
-                                qt_votos=Integer.parseInt(token);
+                                qt_votos = Integer.parseInt(token);
                             } else if (coluna == NR_VOTAVEL) {
-                                nr_votavel = token;                          
+                                nr_votavel = token;
                             }
-                        } else {
-                            lineScanner.next();
                         }
                         coluna++;
                     }
-                    //incrementar os votos nominais no partido
-                    if(cd_cargo.equals(tipo)){
-                        if(mapaCandidatos.get(nr_votavel)!=null){
-                            Candidato candidato = mapaCandidatos.get(nr_votavel);
-                            Partido partido= new Partido(candidato.getNr_partido(), cd_cargo);
-                            partido.addCandidato(candidato);
-                            mapaPartidos.put(candidato.getNr_partido(), partido);
-                            // if(mapaCandidatos.get(nr_votavel).getCd_cargo().equals(tipo)){
-                            //     if(mapaPartidos.get(mapaCandidatos.get(nr_votavel).getNr_partido())==null){
-                            //         Partido partido = new Partido(mapaCandidatos.get(nr_votavel).getNr_partido(),mapaCandidatos.get(nr_votavel).getSg_partido());
-                            //         partido.addCandidato(mapaCandidatos.get(nr_votavel));
-                            //         mapaPartidos.put(mapaCandidatos.get(nr_votavel).getNr_partido(), partido);
-                            //     }
-                                
-                            //     String token=mapaCandidatos.get(nr_votavel).getNm_tipo_destinacao_votos();
-                                
-                            //     boolean ehVotoLegenda = mapaCandidatos.get(nr_votavel).getNm_tipo_destinacao_votos().contains("lido");
-                                 mapaCandidatos.get(nr_votavel).incrementaVoto(qt_votos);
-                            //     mapaPartidos.get(mapaCandidatos.get(nr_votavel).getNr_partido()).incrementaVoto(qt_votos,ehVotoLegenda);
-                            // }
+                    String key_partido = null;
+                    if (cd_cargo.equals(tipo_eleicao)) {
+                        if (Voto.ehVotoBrancoOuNulo(nr_votavel)) {
+                            continue;
+                        } else {
+                            // candidatos deferidos e com votos na legenda
+                            if (mapaCandidatos.containsKey(nr_votavel)) {
+                                Candidato c = mapaCandidatos.get(nr_votavel);
+                                key_partido = c.getNr_partido();
+                                String sg_partido = c.getSg_partido();
+                                // verificando se o partido ja foi criado;
+                                if (!mapaPartidos.containsKey(key_partido)) {
+                                    Partido partido = new Partido(key_partido, sg_partido);
+                                    mapaPartidos.put(key_partido, partido);
+                                }
+                                mapaPartidos.get(key_partido).incrementaVoto(qt_votos, c.ehVotoLegenda());
+                                mapaCandidatos.get(nr_votavel).incrementaVoto(qt_votos);
+                                mapaPartidos.get(key_partido).addCandidato(c);
+                            }else{
+                                if(mapaPartidos.get(nr_votavel)!=null){
+                                    mapaPartidos.get(nr_votavel).incrementaVoto(qt_votos,true);
+                                }
+                            } 
                         }
-                    }else{
-                        continue;
                     }
-                        
                 }
             }
-          
             return mapaPartidos;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return mapaPartidos;
     }
-    
 }
